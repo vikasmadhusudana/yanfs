@@ -41,6 +41,8 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.InetSocketAddress;
 
 /**
  * Sets up a UDP connection to the server.
@@ -73,7 +75,18 @@ public class ConnectDatagram extends Connection {
 
         super(server, port, "udp", maxSize);
 
-        ds = new DatagramSocket();
+        int localPort = getReservedUDPPort();
+
+        if(localPort == -1)
+            throw new SocketException("Unable to get Reserved port");
+
+        ds = new DatagramSocket(null);
+        try {
+        ds.bind(new InetSocketAddress(localPort));
+        } catch(IOException e) {
+            e.printStackTrace();
+            throw e;
+        }
         addr = InetAddress.getByName(server);
         start();
     }

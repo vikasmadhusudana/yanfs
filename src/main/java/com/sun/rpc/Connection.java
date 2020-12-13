@@ -39,6 +39,13 @@ package com.sun.rpc;
 
 import java.io.*;
 import java.util.Hashtable;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.ServerSocket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+
 import java.net.InetAddress;
 
 /**
@@ -127,6 +134,52 @@ public abstract class Connection extends Thread {
     }
 
     private boolean running;
+
+
+    protected boolean isTCPPortAvailable(int port) {
+        try(Socket socket = new Socket()) {
+            //serverSocket.setReuseAddress(true);
+            socket.bind(new InetSocketAddress(port));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    protected int getReservedTCPPort() {
+        int localPort = -1;
+
+        for(int i= 1023; i > 0; i--) {
+            if(isTCPPortAvailable(i)) {
+                localPort = i;
+                break;
+            }    
+        }
+        return localPort;
+    }
+
+    protected boolean isUDPPortAvailable(int port) {
+        try(DatagramSocket socket = new DatagramSocket(null)) {
+            //serverSocket.setReuseAddress(true);
+            socket.bind(new InetSocketAddress(port));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    protected int getReservedUDPPort() {
+        int localPort = -1;
+
+        for(int i= 1023; i > 0; i--) {
+            if(isUDPPortAvailable(i)) {
+                localPort = i;
+                break;
+            }    
+        }
+        return localPort;
+    }
+
 
     synchronized void suspendListener() {
         running = false;

@@ -39,7 +39,11 @@ package com.sun.rpc;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.ServerSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+
 
 /**
  * Sets up a TCP connection to the server.
@@ -83,8 +87,17 @@ public class ConnectSocket extends Connection {
 
         if (server == null)
             throw new java.net.UnknownHostException("null host");
+        
+        int localPort = getReservedTCPPort();
 
-        sock = new Socket(server, port);
+
+        if (localPort == -1) 
+            throw new SocketException("Unable to get reserved port");
+
+
+        sock = new Socket();
+        sock.bind(new InetSocketAddress(localPort));
+        sock.connect(new InetSocketAddress(server,port));
         sock.setTcpNoDelay(true);
     	ins = sock.getInputStream();
     	outs = sock.getOutputStream();
